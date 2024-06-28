@@ -2,9 +2,9 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
@@ -12,28 +12,38 @@ package sentry
 
 import (
 	"bufio"
-	"github.com/pkg/errors"
-	"github.com/vmware-tanzu/secrets-manager/core/env"
+	"errors"
 	"os"
+
+	"github.com/vmware-tanzu/secrets-manager/core/env"
 )
 
 func saveData(data string) error {
-	path := env.SidecarSecretsPath()
+	path := env.SecretsPathForSidecar()
 
 	f, err := os.Create(path)
 	if err != nil {
-		return errors.Wrap(err, "error saving data")
+		return errors.Join(
+			err,
+			errors.New("error saving data"),
+		)
 	}
 
 	w := bufio.NewWriter(f)
 	_, err = w.WriteString(data)
 	if err != nil {
-		return errors.Wrap(err, "error saving data")
+		return errors.Join(
+			err,
+			errors.New("error saving data"),
+		)
 	}
 
 	err = w.Flush()
 	if err != nil {
-		return errors.Wrap(err, "error flushing writer")
+		return errors.Join(
+			err,
+			errors.New("error flushing writer"),
+		)
 	}
 
 	return nil

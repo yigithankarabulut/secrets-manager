@@ -2,21 +2,22 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
 package main
 
 import (
+	"io"
 	"log"
 	"os"
 	"time"
 )
 
-const lockFilePath = "/opt/vsecm/git_poller.lock"
+var lockFilePath = "/opt/vsecm/git_poller.lock"
 
 // createLockFile tries to create a lock file and returns an error if it already exists
 func createLockFile() error {
@@ -24,12 +25,12 @@ func createLockFile() error {
 	if err == nil {
 		return nil
 	}
-	defer func() {
-		err := lockFile.Close()
+	defer func(l io.ReadCloser) {
+		err := l.Close()
 		if err != nil {
 			log.Printf("Error closing lock file: %s", err)
 		}
-	}()
+	}(lockFile)
 
 	if !os.IsExist(err) {
 		return err

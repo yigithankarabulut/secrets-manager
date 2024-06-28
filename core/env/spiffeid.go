@@ -2,47 +2,63 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
 package env
 
-import "os"
+import (
+	"github.com/vmware-tanzu/secrets-manager/core/constants/env"
+)
 
-// SentinelSpiffeIdPrefix returns the prefix for the Safe SPIFFE ID.
+// SpiffeIdPrefixForSentinel returns the prefix for the Safe SPIFFE ID.
 // The prefix is obtained from the environment variable
-// VSECM_SENTINEL_SPIFFEID_PREFIX. If the variable is not set, the default prefix is
-// used.
-func SentinelSpiffeIdPrefix() string {
-	p := os.Getenv("VSECM_SENTINEL_SPIFFEID_PREFIX")
+// VSECM_SPIFFEID_PREFIX_SENTINEL. If the variable is not set, the default
+// prefix is used.
+func SpiffeIdPrefixForSentinel() string {
+	p := env.Value(env.VSecMSpiffeIdPrefixSentinel)
 	if p == "" {
-		p = "spiffe://vsecm.com/workload/vsecm-sentinel/ns/vsecm-system/sa/vsecm-sentinel/n/"
+		p = string(env.VSecMSpiffeIdPrefixSentinelDefault)
 	}
 	return p
 }
 
-// SafeSpiffeIdPrefix returns the prefix for the Safe SPIFFE ID.
+// SpiffeIdPrefixForSafe returns the prefix for the Safe SPIFFE ID.
 // The prefix is obtained from the environment variable
-// VSECM_SAFE_SPIFFEID_PREFIX. If the variable is not set, the default prefix is
+// VSECM_SPIFFEID_PREFIX_SAFE. If the variable is not set, the default prefix is
 // used.
-func SafeSpiffeIdPrefix() string {
-	p := os.Getenv("VSECM_SAFE_SPIFFEID_PREFIX")
+func SpiffeIdPrefixForSafe() string {
+	p := env.Value(env.VSecMSpiffeIdPrefixSafe)
 	if p == "" {
-		p = "spiffe://vsecm.com/workload/vsecm-safe/ns/vsecm-system/sa/vsecm-safe/n/"
+		p = string(env.VSecMSpiffeIdPrefixSafeDefault)
 	}
 	return p
 }
 
-// WorkloadSpiffeIdPrefix returns the prefix for the WorkloadId’s SPIFFE ID.
-// The prefix is obtained from the environment variable VSECM_WORKLOAD_SPIFFEID_PREFIX.
+// SpiffeIdPrefixForWorkload returns the prefix for the Workload's SPIFFE ID.
+// The prefix is obtained from the environment variable
+// VSECM_SPIFFEID_PREFIX_WORKLOAD.
 // If the variable is not set, the default prefix is used.
-func WorkloadSpiffeIdPrefix() string {
-	p := os.Getenv("VSECM_WORKLOAD_SPIFFEID_PREFIX")
+func SpiffeIdPrefixForWorkload() string {
+	p := env.Value(env.VSecMSpiffeIdPrefixWorkload)
 	if p == "" {
-		p = "spiffe://vsecm.com/workload/"
+		p = string(env.VSecMSpiffeIdPrefixWorkloadDefault)
+	}
+	return p
+}
+
+// NameRegExpForWorkload returns the regular expression pattern for extracting
+// the workload name from the SPIFFE ID.
+// The prefix is obtained from the environment variable
+// VSECM_NAME_REGEXP_FOR_WORKLOAD.
+// If the variable is not set, the default pattern is used.
+func NameRegExpForWorkload() string {
+	p := env.Value(env.VSecMWorkloadNameRegExp)
+	if p == "" {
+		p = string(env.VSecMNameRegExpForWorkloadDefault)
 	}
 	return p
 }

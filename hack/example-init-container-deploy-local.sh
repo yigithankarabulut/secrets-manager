@@ -4,13 +4,13 @@
 # |    Protect your secrets, protect your sensitive data.
 # :    Explore VMware Secrets Manager docs at https://vsecm.com/
 # </
-# <>/  keep your secrets… secret
+# <>/  keep your secrets... secret
 # >/
-# <>/' Copyright 2023–present VMware Secrets Manager contributors.
+# <>/' Copyright 2023-present VMware Secrets Manager contributors.
 # >/'  SPDX-License-Identifier: BSD-2-Clause
 # */
 
-cd ./examples/using-init-container || exit
+cd ./examples/using_init_container || exit
 
 kubectl apply -f ./k8s/ServiceAccount.yaml
 kubectl apply -k ./k8s

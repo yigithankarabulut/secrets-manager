@@ -4,9 +4,9 @@
 # |    Protect your secrets, protect your sensitive data.
 # :    Explore VMware Secrets Manager docs at https://vsecm.com/
 # </
-# <>/  keep your secrets… secret
+# <>/  keep your secrets... secret
 # >/
-# <>/' Copyright 2023–present VMware Secrets Manager contributors.
+# <>/' Copyright 2023-present VMware Secrets Manager contributors.
 # >/'  SPDX-License-Identifier: BSD-2-Clause
 # */
 
@@ -37,27 +37,14 @@ docker trust sign vsecm/vsecm-ist-init-container:latest
 echo "example-using-sidecar"
 docker trust sign vsecm/example-using-sidecar:"$VERSION"
 docker trust sign vsecm/example-using-sidecar:latest
-echo "example-using-sdk"
-docker trust sign vsecm/example-using-sdk:"$VERSION"
-docker trust sign vsecm/example-using-sdk:latest
+echo "example-using-sdk-go"
+docker trust sign vsecm/example-using-sdk-go:"$VERSION"
+docker trust sign vsecm/example-using-sdk-go:latest
 echo "example-multiple-secrets"
 docker trust sign vsecm/example-multiple-secrets:"$VERSION"
 docker trust sign vsecm/example-multiple-secrets:latest
 echo "example-using-init-container"
 docker trust sign vsecm/example-using-init-container:"$VERSION"
 docker trust sign vsecm/example-using-init-container:latest
-
-echo "vsecm-photon-safe"
-docker trust sign vsecm/vsecm-photon-safe:"$VERSION"
-docker trust sign vsecm/vsecm-photon-safe:latest
-echo "vsecm-photon-sentinel"
-docker trust sign vsecm/vsecm-photon-sentinel:"$VERSION"
-docker trust sign vsecm/vsecm-photon-sentinel:latest
-echo "vsecm-photon-sidecar"
-docker trust sign vsecm/vsecm-photon-sidecar:"$VERSION"
-docker trust sign vsecm/vsecm-photon-sidecar:latest
-echo "vsecm-photon-init-container"
-docker trust sign vsecm/vsecm-photon-init-container:"$VERSION"
-docker trust sign vsecm/vsecm-photon-init-container:latest
 
 echo "Everything is awesome!"

@@ -2,9 +2,9 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
@@ -92,7 +92,7 @@ func TestIsWorkload(t *testing.T) {
 		{
 			name: "has_prefix",
 			args: args{
-				spiffeid: "spiffe://vsecm.com/workload/test",
+				spiffeid: "spiffe://vsecm.com/workload/test/ns/test/sa/test/n/test",
 			},
 			want: true,
 		},

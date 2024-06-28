@@ -2,9 +2,9 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
@@ -66,11 +66,11 @@ func TestProbeReadinessPort(t *testing.T) {
 		want    string
 	}{
 		{
-			name: "default_reaadiness_port_value",
+			name: "default_readiness_port_value",
 			want: ":8082",
 		},
 		{
-			name: "reaadiness_port_value_from_env",
+			name: "readiness_port_value_from_env",
 			setup: func() error {
 				return os.Setenv("VSECM_PROBE_READINESS_PORT", ":5052")
 			},

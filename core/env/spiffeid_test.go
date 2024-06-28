@@ -2,15 +2,16 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
 package env
 
 import (
+	"github.com/vmware-tanzu/secrets-manager/core/constants/env"
 	"os"
 	"testing"
 )
@@ -24,15 +25,15 @@ func TestSentinelSpiffeIdPrefix(t *testing.T) {
 	}{
 		{
 			name: "default_sentinel_spiffeid_prefix",
-			want: "spiffe://vsecm.com/workload/vsecm-sentinel/ns/vsecm-system/sa/vsecm-sentinel/n/",
+			want: string(env.VSecMSpiffeIdPrefixSentinelDefault),
 		},
 		{
 			name: "sentinel_spiffeid_prefix_from_env",
 			setup: func() error {
-				return os.Setenv("VSECM_SENTINEL_SPIFFEID_PREFIX", "spiffe://vsecm.com/workload/vsecm-sentinel/test")
+				return os.Setenv("VSECM_SPIFFEID_PREFIX_SENTINEL", "spiffe://vsecm.com/workload/vsecm-sentinel/test")
 			},
 			cleanup: func() error {
-				return os.Unsetenv("VSECM_SENTINEL_SPIFFEID_PREFIX")
+				return os.Unsetenv("VSECM_SPIFFEID_PREFIX_SENTINEL")
 			},
 			want: "spiffe://vsecm.com/workload/vsecm-sentinel/test",
 		},
@@ -41,18 +42,18 @@ func TestSentinelSpiffeIdPrefix(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
 				if err := tt.setup(); err != nil {
-					t.Errorf("SentinelSpiffeIdPrefix() = failed to setup, with error: %+v", err)
+					t.Errorf("SpiffeIdPrefixForSentinel() = failed to setup, with error: %+v", err)
 				}
 			}
 			defer func() {
 				if tt.cleanup != nil {
 					if err := tt.cleanup(); err != nil {
-						t.Errorf("SentinelSpiffeIdPrefix() = failed to cleanup, with error: %+v", err)
+						t.Errorf("SpiffeIdPrefixForSentinel() = failed to cleanup, with error: %+v", err)
 					}
 				}
 			}()
-			if got := SentinelSpiffeIdPrefix(); got != tt.want {
-				t.Errorf("SentinelSpiffeIdPrefix() = %v, want %v", got, tt.want)
+			if got := SpiffeIdPrefixForSentinel(); got != tt.want {
+				t.Errorf("SpiffeIdPrefixForSentinel() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -67,15 +68,15 @@ func TestSafeSpiffeIdPrefix(t *testing.T) {
 	}{
 		{
 			name: "default_safe_spiffeid_prefix",
-			want: "spiffe://vsecm.com/workload/vsecm-safe/ns/vsecm-system/sa/vsecm-safe/n/",
+			want: string(env.VSecMSpiffeIdPrefixSafeDefault),
 		},
 		{
 			name: "safe_spiffeid_prefix_from_env",
 			setup: func() error {
-				return os.Setenv("VSECM_SAFE_SPIFFEID_PREFIX", "spiffe://vsecm.com/workload/vsecm-safe/test")
+				return os.Setenv("VSECM_SPIFFEID_PREFIX_SAFE", "spiffe://vsecm.com/workload/vsecm-safe/test")
 			},
 			cleanup: func() error {
-				return os.Unsetenv("VSECM_SAFE_SPIFFEID_PREFIX")
+				return os.Unsetenv("VSECM_SPIFFEID_PREFIX_SAFE")
 			},
 			want: "spiffe://vsecm.com/workload/vsecm-safe/test",
 		},
@@ -84,18 +85,18 @@ func TestSafeSpiffeIdPrefix(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
 				if err := tt.setup(); err != nil {
-					t.Errorf("SafeSpiffeIdPrefix() = failed to setup, with error: %+v", err)
+					t.Errorf("SpiffeIdPrefixForSafe() = failed to setup, with error: %+v", err)
 				}
 			}
 			defer func() {
 				if tt.cleanup != nil {
 					if err := tt.cleanup(); err != nil {
-						t.Errorf("SafeSpiffeIdPrefix() = failed to cleanup, with error: %+v", err)
+						t.Errorf("SpiffeIdPrefixForSafe() = failed to cleanup, with error: %+v", err)
 					}
 				}
 			}()
-			if got := SafeSpiffeIdPrefix(); got != tt.want {
-				t.Errorf("SafeSpiffeIdPrefix() = %v, want %v", got, tt.want)
+			if got := SpiffeIdPrefixForSafe(); got != tt.want {
+				t.Errorf("SpiffeIdPrefixForSafe() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -110,35 +111,35 @@ func TestWorkloadSpiffeIdPrefix(t *testing.T) {
 	}{
 		{
 			name: "default_safe_spiffeid_prefix",
-			want: "spiffe://vsecm.com/workload/",
+			want: string(env.VSecMSpiffeIdPrefixWorkloadDefault),
 		},
 		{
 			name: "safe_spiffeid_prefix_from_env",
 			setup: func() error {
-				return os.Setenv("VSECM_WORKLOAD_SPIFFEID_PREFIX", "spiffe://vsecm.com/workload/test/")
+				return os.Setenv("VSECM_SPIFFEID_PREFIX_WORKLOAD", "spiffe://vsecm.com/workload/test/ns/test/sa/test/n/test")
 			},
 			cleanup: func() error {
-				return os.Unsetenv("VSECM_WORKLOAD_SPIFFEID_PREFIX")
+				return os.Unsetenv("VSECM_SPIFFEID_PREFIX_WORKLOAD")
 			},
-			want: "spiffe://vsecm.com/workload/test/",
+			want: "spiffe://vsecm.com/workload/test/ns/test/sa/test/n/test",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
 				if err := tt.setup(); err != nil {
-					t.Errorf("WorkloadSpiffeIdPrefix() = failed to setup, with error: %+v", err)
+					t.Errorf("SpiffeIdPrefixForWorkload() = failed to setup, with error: %+v", err)
 				}
 			}
 			defer func() {
 				if tt.cleanup != nil {
 					if err := tt.cleanup(); err != nil {
-						t.Errorf("WorkloadSpiffeIdPrefix() = failed to cleanup, with error: %+v", err)
+						t.Errorf("SpiffeIdPrefixForWorkload() = failed to cleanup, with error: %+v", err)
 					}
 				}
 			}()
-			if got := WorkloadSpiffeIdPrefix(); got != tt.want {
-				t.Errorf("WorkloadSpiffeIdPrefix() = %v, want %v", got, tt.want)
+			if got := SpiffeIdPrefixForWorkload(); got != tt.want {
+				t.Errorf("SpiffeIdPrefixForWorkload() = %v, want %v", got, tt.want)
 			}
 		})
 	}

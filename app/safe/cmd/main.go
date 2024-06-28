@@ -2,9 +2,9 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
@@ -13,18 +13,32 @@ package main
 import (
 	"context"
 
+	"github.com/spiffe/go-spiffe/v2/workloadapi"
+
 	"github.com/vmware-tanzu/secrets-manager/app/safe/internal/bootstrap"
-	"github.com/vmware-tanzu/secrets-manager/app/safe/internal/server"
-	"github.com/vmware-tanzu/secrets-manager/core/log"
+	server "github.com/vmware-tanzu/secrets-manager/app/safe/internal/server/engine"
+	"github.com/vmware-tanzu/secrets-manager/core/constants/env"
+	"github.com/vmware-tanzu/secrets-manager/core/constants/key"
+	"github.com/vmware-tanzu/secrets-manager/core/crypto"
+	log "github.com/vmware-tanzu/secrets-manager/core/log/std"
 	"github.com/vmware-tanzu/secrets-manager/core/probe"
 )
 
 func main() {
-	id := "VSECMSAFE"
+	id := crypto.Id()
 
-	bootstrap.ValidateEnvironment()
+	//Print the diagnostic information about the environment.
+	log.PrintEnvironmentInfo(&id, []string{
+		string(env.AppVersion),
+		string(env.VSecMLogLevel),
+	})
 
-	log.InfoLn(&id, "Acquiring identity…")
+	ctx, cancel := context.WithCancel(
+		context.WithValue(context.Background(), key.CorrelationId, &id),
+	)
+	defer cancel()
+
+	log.InfoLn(&id, "Acquiring identity...")
 
 	// Channel to notify when the bootstrap timeout has been reached.
 	timedOut := make(chan bool, 1)
@@ -46,35 +60,28 @@ func main() {
 		}, timedOut,
 	)
 
-	//Print the diagnostic information about the environment.
-	envVarsToPrint := []string{"APP_VERSION", "VSECM_LOG_LEVEL",
-		"VSECM_SAFE_FIPS_COMPLIANT", "VSECM_SAFE_SPIFFEID_PREFIX",
-		"VSECM_SAFE_TLS_PORT"}
-	log.PrintEnvironmentInfo(&id, envVarsToPrint)
-
 	// Time out if things take too long.
 	go bootstrap.NotifyTimeout(timedOut)
 
 	// Create initial cryptographic seeds off-cycle.
-	go bootstrap.CreateCryptoKey(&id, updatedSecret)
+	go bootstrap.CreateRootKey(&id, updatedSecret)
 
 	// App is alive; however, not yet ready to accept connections.
-	go probe.CreateLiveness()
+	<-probe.CreateLiveness()
 
-	ctx, cancel := context.WithCancel(
-		context.WithValue(context.Background(), "correlationId", &id),
-	)
-
-	defer cancel()
-
+	log.InfoLn(&id, "before acquiring source...")
 	source := bootstrap.AcquireSource(ctx, acquiredSvid)
-	defer func() {
+	defer func(s *workloadapi.X509Source) {
+		if s == nil {
+			return
+		}
+
 		// Close the source after the server (1) is done serving, likely
 		// when the app is shutting down due to an eviction or a panic.
-		if err := source.Close(); err != nil {
+		if err := s.Close(); err != nil {
 			log.InfoLn(&id, "Problem closing SVID Bundle source: %v\n", err)
 		}
-	}()
+	}(source)
 
 	// (1)
 	if err := server.Serve(source, serverStarted); err != nil {

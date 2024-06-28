@@ -2,9 +2,9 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
@@ -14,82 +14,44 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+
 	"github.com/spiffe/go-spiffe/v2/spiffeid"
 	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
+	"github.com/vmware-tanzu/secrets-manager/core/constants/key"
+	"github.com/vmware-tanzu/secrets-manager/core/spiffe"
+
+	u "github.com/vmware-tanzu/secrets-manager/core/constants/url"
 	"github.com/vmware-tanzu/secrets-manager/core/env"
+	log "github.com/vmware-tanzu/secrets-manager/core/log/rpc"
 	"github.com/vmware-tanzu/secrets-manager/core/validation"
-	"io"
-	"log"
-	"net/http"
-	"net/url"
 )
 
-func acquireSource(ctx context.Context) (*workloadapi.X509Source, bool) {
-	resultChan := make(chan *workloadapi.X509Source)
-	errorChan := make(chan error)
+// Check validates the connectivity to VSecM Safe by calling the "list secrets"
+// API and expecting a successful response. The successful return (`nil`) from
+// this method means that VSecM Safe is up, and VSecM Sentinel is able to
+// establish an authorized request and get a meaningful response body.
+//
+// Parameters:
+//   - ctx: Context used for operation cancellation and passing metadata such as
+//     "correlationId" for logging purposes.
+//   - source: A pointer to a workloadapi.X509Source that provides the necessary
+//     credentials for mTLS communication.
+//
+// Returns:
+//   - An error if the validation fails, the workload source is nil, there's an
+//     issue with constructing the API endpoint URL, problems occur during the
+//     HTTP request to the VSecM Safe API endpoint, or the response body cannot
+//     be read. The error includes a descriptive message indicating the nature
+//     of the failure.
+func Check(ctx context.Context, source *workloadapi.X509Source) error {
+	cid := ctx.Value(key.CorrelationId).(*string)
 
-	go func() {
-		source, err := workloadapi.NewX509Source(
-			ctx, workloadapi.WithClientOptions(
-				workloadapi.WithAddr(env.SpiffeSocketUrl()),
-			),
-		)
-
-		if err != nil {
-			errorChan <- err
-			return
-		}
-
-		svid, err := source.GetX509SVID()
-		if err != nil {
-			fmt.Println("acquireSource: I am having trouble fetching my identity from SPIRE.")
-			fmt.Println("acquireSource: I won’t proceed until you put me in a secured container.")
-			fmt.Println("")
-			errorChan <- err
-			return
-		}
-
-		// Make sure that the binary is enclosed in a Pod that we trust.
-		if !validation.IsSentinel(svid.ID.String()) {
-			fmt.Println("acquireSource: I don’t know you, and it’s crazy: '" + svid.ID.String() + "'")
-			fmt.Println("acquireSource: `safe` can only run from within the Sentinel container.")
-			fmt.Println("")
-			errorChan <- errors.New("acquireSource: I don’t know you, and it’s crazy: '" + svid.ID.String() + "'")
-			return
-		}
-
-		resultChan <- source
-	}()
-
-	select {
-	case source := <-resultChan:
-		return source, true
-	case err := <-errorChan:
-		fmt.Println("acquireSource: I cannot execute command because I cannot talk to SPIRE.", err.Error())
-		return nil, false
-	case <-ctx.Done():
-		fmt.Println("acquireSource: Operation was cancelled.")
-		return nil, false
-	}
-}
-
-func Get(showEncryptedSecrets bool) {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	source, proceed := acquireSource(ctx)
-	defer func() {
-		if source == nil {
-			return
-		}
-		err := source.Close()
-		if err != nil {
-			log.Println("Get: Problem closing the workload source.")
-		}
-	}()
-	if !proceed {
-		return
+	if source == nil {
+		return errors.New("check: workload source is nil")
 	}
 
 	authorizer := tlsconfig.AdaptMatcher(func(id spiffeid.ID) error {
@@ -97,19 +59,23 @@ func Get(showEncryptedSecrets bool) {
 			return nil
 		}
 
-		return errors.New("I don’t know you, and it’s crazy: '" + id.String() + "'")
+		return errors.New(
+			"I don't know you, and it's crazy: '" + id.String() + "'",
+		)
 	})
 
-	safeUrl := "/sentinel/v1/secrets"
-	if showEncryptedSecrets {
-		safeUrl = "/sentinel/v1/secrets?reveal=true"
-	}
+	safeUrl := u.SentinelSecrets
 
-	p, err := url.JoinPath(env.SafeEndpointUrl(), safeUrl)
+	p, err := url.JoinPath(env.EndpointUrlForSafe(), safeUrl)
 	if err != nil {
-		fmt.Println("Get: I am having problem generating VSecM Safe secrets api endpoint URL.")
-		fmt.Println("")
-		return
+		return errors.Join(
+			err,
+			fmt.Errorf(
+				"check: I am having problem generating"+
+					" VSecM Safe secrets api endpoint URL: %s\n",
+				safeUrl,
+			),
+		)
 	}
 
 	tlsConfig := tlsconfig.MTLSClientConfig(source, source, authorizer)
@@ -121,9 +87,14 @@ func Get(showEncryptedSecrets bool) {
 
 	r, err := client.Get(p)
 	if err != nil {
-		fmt.Println("Get: Problem connecting to VSecM Safe API endpoint URL.", err.Error())
-		fmt.Println("")
-		return
+		return errors.Join(
+			err,
+			fmt.Errorf(
+				"check: Problem connecting to"+
+					" VSecM Safe API endpoint URL: %s\n",
+				safeUrl,
+			),
+		)
 	}
 
 	defer func(b io.ReadCloser) {
@@ -132,18 +103,108 @@ func Get(showEncryptedSecrets bool) {
 		}
 		err := b.Close()
 		if err != nil {
-			log.Println("Get: Problem closing request body.")
+			log.ErrorLn(cid, "Get: Problem closing request body.")
+		}
+	}(r.Body)
+
+	_, err = io.ReadAll(r.Body)
+	if err != nil {
+		return errors.Join(
+			err,
+			errors.New("check: Unable to read the response body from VSecM Safe"),
+		)
+	}
+
+	return nil
+}
+
+// Get retrieves secrets from a VSecM Safe API endpoint based on the context and
+// whether encrypted secrets should be shown.
+// The function uses SPIFFE for secure communication, establishing mTLS with
+// the server.
+//
+// Parameters:
+//   - ctx: Context used for operation cancellation and passing metadata across
+//     API boundaries. It must contain a "correlationId" value.
+//   - showEncryptedSecrets: A boolean flag indicating whether to retrieve
+//     encrypted secrets. If true, secrets are shown in encrypted form.
+func Get(ctx context.Context, showEncryptedSecrets bool) error {
+	cid := ctx.Value(key.CorrelationId).(*string)
+
+	log.AuditLn(cid, "Sentinel:Get")
+
+	source, proceed := spiffe.AcquireSourceForSentinel(ctx)
+	defer func(s *workloadapi.X509Source) {
+		if s == nil {
+			return
+		}
+		err := s.Close()
+		if err != nil {
+			log.ErrorLn(cid, "Get: Problem closing the workload source.")
+		}
+	}(source)
+	if !proceed {
+		return errors.New("get: Problem acquiring source")
+	}
+
+	authorizer := tlsconfig.AdaptMatcher(func(id spiffeid.ID) error {
+		if validation.IsSafe(id.String()) {
+			return nil
+		}
+
+		return errors.New("I don't know you, and it's crazy: '" +
+			id.String() + "'")
+	})
+
+	safeUrl := u.SentinelSecrets
+	if showEncryptedSecrets {
+		safeUrl = u.SentinelSecretsWithReveal
+	}
+
+	p, err := url.JoinPath(env.EndpointUrlForSafe(), safeUrl)
+	if err != nil {
+		return errors.Join(
+			err,
+			errors.New("problem generating VSecM Safe secrets api endpoint URL"),
+		)
+	}
+
+	tlsConfig := tlsconfig.MTLSClientConfig(source, source, authorizer)
+	client := &http.Client{
+		Transport: &http.Transport{
+			TLSClientConfig: tlsConfig,
+		},
+	}
+
+	r, err := client.Get(p)
+	if err != nil {
+		return errors.Join(
+			err,
+			errors.New("problem connecting to VSecM Safe API endpoint URL"),
+		)
+	}
+
+	defer func(b io.ReadCloser) {
+		if b == nil {
+			return
+		}
+		err := b.Close()
+		if err != nil {
+			log.ErrorLn(cid, "Get: Problem closing request body.")
 		}
 	}(r.Body)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		fmt.Println("Get: Unable to read the response body from VSecM Safe.")
-		fmt.Println("")
-		return
+		return errors.Join(
+			err,
+			errors.New("unable to read the response body from VSecM Safe"),
+		)
 	}
 
 	fmt.Println("")
 	fmt.Println(string(body))
 	fmt.Println("")
+
+	return nil
 }

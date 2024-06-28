@@ -2,29 +2,29 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
 package env
 
 import (
-	"os"
+	"github.com/vmware-tanzu/secrets-manager/core/constants/env"
 )
 
-// SecretGenerationPrefix returns a prefix that’s used by VSecM Sentinel to
+// SecretGenerationPrefix returns a prefix that's used by VSecM Sentinel to
 // generate random pattern-based secrets. If a secret is prefixed with this value,
-// then VSecM Sentinel will consider it as a “template” rather than a literal value.
+// then VSecM Sentinel will consider it as a "template" rather than a literal value.
 //
 // It retrieves this prefix from the environment variable
 // "VSECM_SENTINEL_SECRET_GENERATION_PREFIX".
 // If the environment variable is not set or is empty, it defaults to "gen:".
 func SecretGenerationPrefix() string {
-	p := os.Getenv("VSECM_SENTINEL_SECRET_GENERATION_PREFIX")
+	p := env.Value(env.VSecMSentinelSecretGenerationPrefix)
 	if p == "" {
-		return "gen:"
+		return string(env.VSecMSentinelSecretGenerationPrefixDefault)
 	}
 	return p
 }
@@ -33,7 +33,7 @@ func SecretGenerationPrefix() string {
 // as a Kubernetes secret.
 //
 // It fetches the value of the environment variable
-// VSECM_SAFE_STORE_WORKLOAD_AS_K8S_SECRET_PREFIX.
+// VSECM_SAFE_STORE_WORKLOAD_SECRET_AS_K8S_SECRET_PREFIX.
 // If this environment variable is not set or is empty, it defaults to "k8s:".
 //
 // This way, you can use VSecM to generate Kubernetes Secrets instead of
@@ -46,9 +46,9 @@ func SecretGenerationPrefix() string {
 //   - A string representing the prefix for Kubernetes secrets.
 //     The default value is "k8s:" if the environment variable is not set or empty.
 func StoreWorkloadAsK8sSecretPrefix() string {
-	p := os.Getenv("VSECM_SAFE_STORE_WORKLOAD_AS_K8S_SECRET_PREFIX")
+	p := env.Value(env.VSecMSafeStoreWorkloadSecretAsK8sSecretPrefix)
 	if p == "" {
-		return "k8s:"
+		return string(env.VSecMSafeStoreWorkloadSecretAsK8sSecretPrefixDefault)
 	}
 	return p
 }

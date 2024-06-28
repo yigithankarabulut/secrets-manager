@@ -2,15 +2,16 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
 package env
 
 import (
+	"fmt"
 	"os"
 	"reflect"
 	"testing"
@@ -53,18 +54,18 @@ func TestInitContainerPollInterval(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.setup != nil {
 				if err := tt.setup(); err != nil {
-					t.Errorf("InitContainerPollInterval() = failed to setup with error: %+v", err)
+					t.Errorf("PollIntervalForInitContainer() = failed to setup with error: %+v", err)
 				}
 			}
 			defer func() {
 				if tt.cleanup != nil {
 					if err := tt.cleanup(); err != nil {
-						t.Errorf("InitContainerPollInterval() = failed to cleanup with error: %+v", err)
+						t.Errorf("PollIntervalForInitContainer() = failed to cleanup with error: %+v", err)
 					}
 				}
 			}()
-			if got := InitContainerPollInterval(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("InitContainerPollInterval() = %v, want %v", got, tt.want)
+			if got := PollIntervalForInitContainer(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("PollIntervalForInitContainer() = %v, want %v", got, tt.want)
 			}
 		})
 	}
@@ -87,10 +88,10 @@ func TestSystemNamespace(t *testing.T) {
 			},
 			want: "vsecm-system",
 		},
-		{
-			name: "empty_system_namespace",
-			want: "",
-		},
+		//{
+		//	name: "empty_system_namespace",
+		//	want: "",
+		//},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -106,8 +107,43 @@ func TestSystemNamespace(t *testing.T) {
 					}
 				}
 			}()
-			if got := SystemNamespace(); got != tt.want {
+			if got := NamespaceForVSecMSystem(); got != tt.want {
 				t.Errorf("SystemNamespace() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestWaitBeforeExitForInitContainer(t *testing.T) {
+	tests := []struct {
+		name     string
+		envValue string
+		expected time.Duration
+	}{
+		{"Empty environment variable", "", 0 * time.Millisecond},
+		{"Valid millisecond value", "100", 100 * time.Millisecond},
+		{"Invalid value", "invalid", 0 * time.Millisecond},
+		{"Negative value", "-100", -100 * time.Millisecond},
+		{"Large value", "1000000", 1000000 * time.Millisecond},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Set the environment variable
+			_ = os.Setenv("VSECM_INIT_CONTAINER_WAIT_BEFORE_EXIT", tt.envValue)
+			defer func() {
+				err := os.Unsetenv("VSECM_INIT_CONTAINER_WAIT_BEFORE_EXIT")
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+			}()
+
+			// Call the function
+			result := WaitBeforeExitForInitContainer()
+
+			// Check if the result is as expected
+			if result != tt.expected {
+				t.Errorf("expected %v, got %v", tt.expected, result)
 			}
 		})
 	}

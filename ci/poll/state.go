@@ -2,9 +2,9 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
@@ -12,7 +12,7 @@ package main
 
 import "os"
 
-const commitHashFile = "/opt/vsecm/commit-hash"
+var commitHashFile = "/opt/vsecm/commit-hash"
 
 func readCommitHashFromFile() (string, error) {
 	data, err := os.ReadFile(commitHashFile)

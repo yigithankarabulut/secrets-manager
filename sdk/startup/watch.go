@@ -2,39 +2,36 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
 package startup
 
 import (
-	"github.com/vmware-tanzu/secrets-manager/core/crypto"
-	"github.com/vmware-tanzu/secrets-manager/core/env"
-	"github.com/vmware-tanzu/secrets-manager/core/log"
-	"github.com/vmware-tanzu/secrets-manager/sdk/sentry"
 	"os"
 	"time"
-)
 
-func initialized() bool {
-	r, _ := sentry.Fetch()
-	v := r.Data
-	return v != ""
-}
+	"github.com/vmware-tanzu/secrets-manager/core/env"
+	log "github.com/vmware-tanzu/secrets-manager/core/log/std"
+	"github.com/vmware-tanzu/secrets-manager/lib/crypto"
+)
 
 // Watch continuously polls the associated secret of the workload to exist.
 // If the secret exists, and it is not empty, the function exits the init
 // container with a success status code (0).
-func Watch() {
-	interval := env.InitContainerPollInterval()
+//
+//   - waitTimeBeforeExit: The duration to wait before a successful exit from
+//     the function.
+func Watch(waitTimeBeforeExit time.Duration) {
+	interval := env.PollIntervalForInitContainer()
 	ticker := time.NewTicker(interval)
 
 	cid, _ := crypto.RandomString(8)
 	if cid == "" {
-		cid = "VSECMSDK"
+		panic("Unable to create a secure correlation id.")
 	}
 
 	for {
@@ -42,7 +39,10 @@ func Watch() {
 		case <-ticker.C:
 			log.InfoLn(&cid, "init:: tick")
 			if initialized() {
-				log.InfoLn(&cid, "initialized… exiting the init process")
+				log.InfoLn(&cid, "initialized... exiting the init process")
+
+				time.Sleep(waitTimeBeforeExit)
+
 				os.Exit(0)
 			}
 		}

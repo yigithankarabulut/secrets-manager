@@ -4,9 +4,9 @@
 # |    Protect your secrets, protect your sensitive data.
 # :    Explore VMware Secrets Manager docs at https://vsecm.com/
 # </
-# <>/  keep your secrets… secret
+# <>/  keep your secrets... secret
 # >/
-# <>/' Copyright 2023–present VMware Secrets Manager contributors.
+# <>/' Copyright 2023-present VMware Secrets Manager contributors.
 # >/'  SPDX-License-Identifier: BSD-2-Clause
 # */
 
@@ -20,8 +20,8 @@
 helm install vsecm vsecm/vsecm
 
 echo "verifying vsecm installation"
-kubectl wait --for=condition=Available deployment -n vsecm-system vsecm-sentinel
+kubectl wait --timeout=120s --for=condition=Available deployment -n vsecm-system vsecm-sentinel
 echo "vsecm-sentinel: deployment available"
-kubectl wait --for=condition=Available deployment -n vsecm-system vsecm-safe
+kubectl wait --timeout=120s --for=condition=Available deployment -n vsecm-system vsecm-safe
 echo "vsecm-safe: deployment available"
 echo "vsecm installation successful"

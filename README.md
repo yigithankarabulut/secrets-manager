@@ -4,17 +4,18 @@
 [![Version](https://img.shields.io/github/v/release/vmware-tanzu/secrets-manager?color=blueviolet)](https://github.com/vmware-tanzu/secrets-manager/releases)
 [![Contributors](https://img.shields.io/github/contributors/vmware-tanzu/secrets-manager.svg?color=orange)](https://github.com/vmware-tanzu/secrets-manager/graphs/contributors)
 [![Slack](https://img.shields.io/badge/slack-vsecm-brightgreen.svg?logo=slack)](https://join.slack.com/t/a-101-103-105-s/shared_invite/zt-287dbddk7-GCX495NK~FwO3bh_DAMAtQ)
-[![Twitch](https://img.shields.io/twitch/status/zerotoherodev)](https://twitch.tv/ZeroToHeroDev)
+[![Twitch](https://img.shields.io/twitch/status/vadidekivolkan)](https://twitch.tv/vadidekivolkan)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/vsecm)](https://artifacthub.io/packages/helm/vsecm/vsecm)
 [![License](https://img.shields.io/github/license/vmware-tanzu/secrets-manager)](https://github.com/vmware-tanzu/secrets-manager/blob/main/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vmware-tanzu/secrets-manager)](https://goreportcard.com/report/github.com/vmware-tanzu/secrets-manager)
+[![Go Coverage](https://github.com/vmware-tanzu/secrets-manager/wiki/coverage.svg)](https://raw.githack.com/wiki/vmware-tanzu/secrets-manager/coverage.html)
 [![Using Better Commits](https://img.shields.io/badge/better--commits-enabled?style=for-the-badge&logo=git&color=a6e3a1&logoColor=D9E0EE&labelColor=302D41)](https://github.com/Everduin94/better-commits)
 
 ```text
 |   Protect your secrets, protect your sensitive data.
 :   Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/ keep your secrets… secret
+<>/ keep your secrets... secret
 ```
 
 ## The Elevator Pitch
@@ -51,8 +52,8 @@ Before trying **VMware Secrets Manager**, you might want to learn about its
 
 Once you are ready to start, [see the Quickstart guide][quickstart].
 
-Or, if you are one of those who “*learn by doing*”, you might want to dig into the
-implementation details later. If that’s the case, you can directly jump to the
+Or, if you are one of those who "*learn by doing*", you might want to dig into the
+implementation details later. If that's the case, you can directly jump to the
 fun part and [follow the steps here][installation] to install
 **VMware Secrets Manager** to your Kubernetes cluster.
 
@@ -81,27 +82,28 @@ the future of **VMware Secrets Manager** looks like.
 
 **VMware Secrets Manager** is under dynamic and progressive development.
 
-The code we’ve officially signed and released maintains a
+The code we've officially signed and released maintains a
 high standard of stability and dependability. However, we do encourage
-it to be used in a production environment (*at your own risk—[see LICENSE](LICENSE)*).
+it to be used in a production environment (*at your own risk--[see LICENSE](LICENSE)*).
 
-It’s important to note that, technically speaking, **VMware Secrets Manager**
+It's important to note that, technically speaking, **VMware Secrets Manager**
 currently holds the status of an *alpha software*. This means that as we
 journey towards our milestone of `v1.0.0`, it's possible for changes to
-occur—both major and minor. While this might mean some aspects are not backward
+occur--both major and minor. While this might mean some aspects are not backward
 compatible, it's a testament to our unwavering commitment to refining and
 enhancing **VMware Secrets Manager**.
 
-In a nutshell, we are ceaselessly pushing the boundaries of what’s possible while
+In a nutshell, we are ceaselessly pushing the boundaries of what's possible while
 ensuring our software stays dependable and effective for production use.
 
 ## 🦆🦆🦆 (*Docs*)
 
-[Official documentation on **vsecm.com**](https://vsecm.com/).
+* [Official documentation on **vsecm.com**](https://vsecm.com/).
+* [Go Docs on **pkg.go.dev**](https://pkg.go.dev/github.com/vmware-tanzu/secrets-manager)
 
 ## A Note on Security
 
-We take **VMware Secrets Manager**’s security seriously. If you believe you have
+We take **VMware Secrets Manager**'s security seriously. If you believe you have
 found a vulnerability, please [**follow this guideline**][vuln]
 to responsibly disclose it.
 
@@ -118,9 +120,11 @@ to responsibly disclose it.
 
 Open Source is better together.
 
-If you are a security enthusiast,
-[**join VMware Secrets Manager’s Slack Workspace**][slack-invite]
-and let us change the world together 🤘.
+If you are a security enthusiast, join these communities
+and let us change the world together 🤘:
+
+* [Join **VMware Secrets Manager**'s Slack Workspace][slack-invite]
+* [Join the **VMware Mecrets Manager** channel on Kampus' Discord Server][kampus]
 
 ## Links
 
@@ -128,7 +132,9 @@ and let us change the world together 🤘.
 
 * **Homepage and Docs**: <https://vsecm.com/>
 * **Changelog**: <https://vsecm.com/docs/changelog/>
-* **Community**: [Join **VSecM**’s Slack Workspace][slack-invite]
+* **Community**:
+  * [Join **VMware Mecrets Manage**'s Slack Workspace][slack-invite]
+  * [Join the **VMware Mecrets Manager** channel on Kampus' Discord Server][kampus]
 * **Contact**: <https://vsecm.com/docs/community/>
 
 ### Guides and Tutorials
@@ -171,23 +177,33 @@ of **VMware Secrets Manager** system design and how each component fits together
 
 ## Folder Structure
 
-> *VSecM* == “VMware Secrets Manager for Cloud-Native Apps”
+> *VSecM* == "VMware Secrets Manager for Cloud-Native Apps"
 
 Here are the important folders and files in this repository:
 
-* `./app`: Contains core **VSecM** components’ source code.
-    * `./app/init-container`: Contains the source code for the **VSecM Init Container**.
+* `./app`: Contains core **VSecM** components' source code.
+    * `./app/init_container`: Contains the source code for the **VSecM Init Container**.
+    * `./app/inspector`: Contains the source code for the **VSecM Inspector**.
+    * `./app/keygen`: Contains the source code for the **VSecM Keygen**.
+    * `./app/keystone`: Contains the **VSecM KeyStone** source code.
     * `./app/safe`: Contains the **VSecM Safe** source code.
     * `./app/sentinel`: Contains the source code for the **VSecM Sentinel**.
     * `./app/sidecar`: Contains the source code for the **VSecM Sidecar**.
+* `./ci`: Automation and CI/CD scripts.
+* `./lib`: Contains independent code that can be used in other projects too.
 * `./helm-charts`: Contains **VSecM** helm charts.
 * `./core`: Contains core modules shared across **VSecM** components.
+* `./dockerfiles`: Contains Dockerfiles for building **VSecM** container images.
 * `./examples`: Contains the source code of example use cases.
 * `./hack`: Contains scripts for building, publishing, development
   , and testing.
 * `./k8s`: Contains Kubernetes manifests that are used to deploy **VSecM** and
   its use cases.
-* `./sdk`: Contains the source code of the **VSecM Developer SDK**.
+* `./sdk`: Contains the source code of the **VSecM Developer Go SDK**.
+* `./sdk-cpp`: Contains the source code of the **VSecM Developer C++ SDK**.
+* `./sdk-java`: Contains the source code of the **VSecM Developer Java SDK**.
+* `./sdk-python`: Contains the source code of the **VSecM Developer Python SDK**.
+* `./sdk-rust`: Contains the source code of the **VSecM Developer Rust SDK**.
 * `./docs`: Contains the source code of the **VSecM Documentation** website (<https://vsecm.com>).
 * `./CODE_OF_CONDUCT.md`: Contains **VSecM** Code of Conduct.
 * `./CONTRIBUTING_DCO.md`: Contains **VSecM** Contributing Guidelines.
@@ -196,14 +212,30 @@ Here are the important folders and files in this repository:
 * `./Makefile`: The `Makefile` used for building,
   publishing, deploying, and testing the project.
 
+## Branches
+
+There are special long-living branches that the project maintains.
+
+* `main`: This is the source code that is in active development. We try out best
+  to keep it stable; however, there is no guarantees. We tag stable releases
+  off of this branch during every release cut.
+* `gh-pages`: This branch is where VSecM Helm charts are maintained.
+  [ArtifactHub][artifacthub] references this branch.
+* `docs`: This branch contains versioned documentation snapshots that we take  
+   during releases.
+* `tcx`: This is an internal "experimental" branch that is not meant for
+  public consumption.
+
+[artifacthub]: https://artifacthub.io/packages/helm/vsecm/vsecm
+
 ## Changelog
 
 You can find the changelog and migration/upgrade instructions (*if any*)
-on [**VMware Secrets Manager**’s Changelog Page](https://vsecm.com/docs/changelog/).
+on [**VMware Secrets Manager**'s Changelog Page](https://vsecm.com/docs/changelog/).
 
-## What’s Coming Up Next?
+## What's Coming Up Next?
 
-You can see the project’s progress [in this **VMware Secrets Manager** roadmap][mdp].
+You can see the project's progress [in this **VMware Secrets Manager** roadmap][mdp].
 
 [mdp]: https://vsecm.com/docs/roadmap/
 
@@ -231,12 +263,13 @@ of maintainers of **VMware Secrets Manager**.
 Please send your feedback, suggestions, recommendations, and comments to
 [feedback@vsecm.com](mailto:feedback@vsecm.com).
 
-We’d love to have them.
+We'd love to have them.
 
 ## License
 
 [BSD 2-Clause License](LICENSE).
 
+[kampus]: https://discord.gg/kampus
 [slack-invite]: https://join.slack.com/t/a-101-103-105-s/shared_invite/zt-287dbddk7-GCX495NK~FwO3bh_DAMAtQ "Join VSecM Slack"
 [roadmap]: https://vsecm.com/docs/roadmap/  "The Roadmap"
 [installation]: https://vsecm.com/docs/installation/ "Install VMware Secrets Manager"

@@ -2,7 +2,7 @@
 |   Protect your secrets, protect your sensitive data.
 :   Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/ keep your secrets… secret
+<>/ keep your secrets... secret
 ```
 
 ## Project Maintainers
@@ -15,12 +15,6 @@ each with their responsibilities outlined.
 * **Volkan Özçelik** [@v0lkan](https://github.com/v0lkan)
   * As the lead architect, Volkan is responsible for overall code quality, 
     security, architecture decisions, and major feature developments.
-
-## Security
-
-* **Ramiro Salas** [@RamXX](https://github.com/RamXX)
-  * Ramiro is in charge of maintaining and enhancing the security aspects of the 
-    project.
 
 ## Core Contributors
 

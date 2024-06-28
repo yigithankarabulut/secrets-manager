@@ -2,23 +2,25 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
 package env
 
-import "os"
+import (
+	"github.com/vmware-tanzu/secrets-manager/core/constants/env"
+)
 
 // ProbeLivenessPort returns the port for liveness probe.
 // It first checks the environment variable VSECM_PROBE_LIVENESS_PORT.
 // If the variable is not set, it returns the default value ":8081".
 func ProbeLivenessPort() string {
-	u := os.Getenv("VSECM_PROBE_LIVENESS_PORT")
+	u := env.Value(env.VSecMProbeLivenessPort)
 	if u == "" {
-		u = ":8081"
+		u = string(env.VSecMProbeLivenessPortDefault)
 	}
 	return u
 }
@@ -27,9 +29,9 @@ func ProbeLivenessPort() string {
 // It first checks the environment variable VSECM_PROBE_READINESS_PORT.
 // If the variable is not set, it returns the default value ":8082".
 func ProbeReadinessPort() string {
-	u := os.Getenv("VSECM_PROBE_READINESS_PORT")
+	u := env.Value(env.VSecMProbeReadinessPort)
 	if u == "" {
-		u = ":8082"
+		u = string(env.VSecMProbeReadinessPortDefault)
 	}
 	return u
 }

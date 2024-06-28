@@ -2,9 +2,9 @@
 |    Protect your secrets, protect your sensitive data.
 :    Explore VMware Secrets Manager docs at https://vsecm.com/
 </
-<>/  keep your secrets… secret
+<>/  keep your secrets... secret
 >/
-<>/' Copyright 2023–present VMware Secrets Manager contributors.
+<>/' Copyright 2023-present VMware Secrets Manager contributors.
 >/'  SPDX-License-Identifier: BSD-2-Clause
 */
 
@@ -13,21 +13,24 @@ package sentry
 import (
 	"context"
 	"encoding/json"
-	"github.com/pkg/errors"
-	"github.com/spiffe/go-spiffe/v2/spiffeid"
-	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
-	"github.com/spiffe/go-spiffe/v2/workloadapi"
-	"github.com/vmware-tanzu/secrets-manager/core/crypto"
-	reqres "github.com/vmware-tanzu/secrets-manager/core/entity/reqres/safe/v1"
-	"github.com/vmware-tanzu/secrets-manager/core/env"
-	"github.com/vmware-tanzu/secrets-manager/core/log"
-	"github.com/vmware-tanzu/secrets-manager/core/validation"
+	"errors"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/spiffe/go-spiffe/v2/spiffeid"
+	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
+	"github.com/spiffe/go-spiffe/v2/workloadapi"
+
+	reqres "github.com/vmware-tanzu/secrets-manager/core/entity/v1/reqres/safe"
+	"github.com/vmware-tanzu/secrets-manager/core/env"
+	log "github.com/vmware-tanzu/secrets-manager/core/log/std"
+	"github.com/vmware-tanzu/secrets-manager/core/validation"
+	c "github.com/vmware-tanzu/secrets-manager/lib/crypto"
 )
 
-var ErrSecretNotFound = errors.New("Secret does not exist")
+// ErrSecretNotFound is returned when the secret is not found.
+var ErrSecretNotFound = errors.New("secret does not exist")
 
 // Fetch fetches the up-to-date secret that has been registered to the workload.
 //
@@ -42,9 +45,9 @@ func Fetch() (reqres.SecretFetchResponse, error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	cid, _ := crypto.RandomString(8)
+	cid, _ := c.RandomString(8)
 	if cid == "" {
-		cid = "VSECMSDK"
+		panic("Unable to create a secure correlation id.")
 	}
 
 	var source *workloadapi.X509Source
@@ -55,27 +58,37 @@ func Fetch() (reqres.SecretFetchResponse, error) {
 		),
 	)
 	if err != nil {
-		return reqres.SecretFetchResponse{}, errors.Wrap(
-			err, "Fetch: failed getting SVID Bundle from the SPIFFE WorkloadId API",
-		)
+		return reqres.SecretFetchResponse{},
+			errors.Join(
+				err,
+				errors.New(
+					"fetch: failed getting SVID Bundle from the SPIFFE Workload API",
+				),
+			)
 	}
 
-	defer func() {
-		err := source.Close()
+	defer func(s *workloadapi.X509Source) {
+		if s == nil {
+			return
+		}
+		err := s.Close()
 		if err != nil {
 			log.InfoLn(&cid, "Fetch: problem closing source: ", err.Error())
 		}
-	}()
+	}(source)
 
 	svid, err := source.GetX509SVID()
 	if err != nil {
 		return reqres.SecretFetchResponse{},
-			errors.Wrap(err, "Fetch: error getting SVID from source")
+			errors.Join(
+				err,
+				errors.New("fetch: error getting SVID from source"),
+			)
 	}
 
 	// Make sure that we are calling Safe from a workload that VSecM knows about.
 	if !validation.IsWorkload(svid.ID.String()) {
-		return reqres.SecretFetchResponse{}, errors.New("Fetch: untrusted workload")
+		return reqres.SecretFetchResponse{}, errors.New("fetch: untrusted workload")
 	}
 
 	authorizer := tlsconfig.AdaptMatcher(func(id spiffeid.ID) error {
@@ -83,13 +96,13 @@ func Fetch() (reqres.SecretFetchResponse, error) {
 			return nil
 		}
 
-		return errors.New("Fetch: I don’t know you, and it’s crazy: '" + id.String() + "'")
+		return errors.New("Fetch: I don't know you, and it's crazy: '" + id.String() + "'")
 	})
 
-	p, err := url.JoinPath(env.SafeEndpointUrl(), "/workload/v1/secrets")
+	p, err := url.JoinPath(env.EndpointUrlForSafe(), "/workload/v1/secrets")
 	if err != nil {
 		return reqres.SecretFetchResponse{},
-			errors.New("Fetch: problem generating server url")
+			errors.New("fetch: problem generating server url")
 	}
 
 	client := &http.Client{
@@ -109,19 +122,20 @@ func Fetch() (reqres.SecretFetchResponse, error) {
 
 	r, err := client.Get(p)
 	if err != nil {
-		return reqres.SecretFetchResponse{}, errors.Wrap(
-			err, "Fetch: problem connecting to VSecM Safe API endpoint",
+		return reqres.SecretFetchResponse{}, errors.Join(
+			err,
+			errors.New("fetch: problem connecting to VSecM Safe API endpoint"),
 		)
 	}
 
-	defer func() {
-		err := r.Body.Close()
+	defer func(b io.ReadCloser) {
+		err := b.Close()
 		if err != nil {
 			if err != nil {
 				log.InfoLn(&cid, "Fetch: problem closing response body: ", err.Error())
 			}
 		}
-	}()
+	}(r.Body)
 
 	// Related to [1]. Hint the server that we wish to close the connection
 	// as soon as we are done with it.
@@ -133,16 +147,20 @@ func Fetch() (reqres.SecretFetchResponse, error) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		return reqres.SecretFetchResponse{}, errors.Wrap(
-			err, "unable to read the response body from VSecM Safe API endpoint",
+		return reqres.SecretFetchResponse{}, errors.Join(
+			err,
+			errors.New(
+				"unable to read the response body from VSecM Safe API endpoint",
+			),
 		)
 	}
 
 	var sfr reqres.SecretFetchResponse
 	err = json.Unmarshal(body, &sfr)
 	if err != nil {
-		return reqres.SecretFetchResponse{}, errors.Wrap(
-			err, "unable to deserialize response",
+		return reqres.SecretFetchResponse{}, errors.Join(
+			err,
+			errors.New("unable to deserialize response"),
 		)
 	}
 
