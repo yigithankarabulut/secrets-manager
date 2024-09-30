@@ -22,11 +22,11 @@ import (
 	"github.com/spiffe/go-spiffe/v2/spiffetls/tlsconfig"
 	"github.com/spiffe/go-spiffe/v2/workloadapi"
 
-	reqres "github.com/vmware-tanzu/secrets-manager/core/entity/v1/reqres/safe"
-	"github.com/vmware-tanzu/secrets-manager/core/env"
-	log "github.com/vmware-tanzu/secrets-manager/core/log/std"
-	"github.com/vmware-tanzu/secrets-manager/core/validation"
-	c "github.com/vmware-tanzu/secrets-manager/lib/crypto"
+	reqres "github.com/vmware-tanzu/secrets-manager/sdk/core/entity/v1/reqres/safe"
+	"github.com/vmware-tanzu/secrets-manager/sdk/core/env"
+	log "github.com/vmware-tanzu/secrets-manager/sdk/core/log/std"
+	"github.com/vmware-tanzu/secrets-manager/sdk/core/validation"
+	c "github.com/vmware-tanzu/secrets-manager/sdk/lib/crypto"
 )
 
 // ErrSecretNotFound is returned when the secret is not found.
@@ -88,7 +88,8 @@ func Fetch() (reqres.SecretFetchResponse, error) {
 
 	// Make sure that we are calling Safe from a workload that VSecM knows about.
 	if !validation.IsWorkload(svid.ID.String()) {
-		return reqres.SecretFetchResponse{}, errors.New("fetch: untrusted workload")
+		return reqres.SecretFetchResponse{},
+			errors.New("fetch: untrusted workload: '" + svid.ID.String() + "'")
 	}
 
 	authorizer := tlsconfig.AdaptMatcher(func(id spiffeid.ID) error {

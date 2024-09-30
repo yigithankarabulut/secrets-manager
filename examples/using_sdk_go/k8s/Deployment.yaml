@@ -28,7 +28,7 @@ spec:
       serviceAccountName: example
       containers:
       - name: main
-        image: vsecm/example-using-sdk-go:0.25.4
+        image: vsecm/example-using-sdk-go:latest
         volumeMounts:
         # Volume mount for SPIRE unix domain socket.
         - name: spire-agent-socket
@@ -45,7 +45,7 @@ spec:
         #
         env:
         - name: SPIFFE_ENDPOINT_SOCKET
-          value: "unix:///spire-agent-socket/agent.sock"
+          value: "unix:///spire-agent-socket/spire-agent.sock"
         - name: VSECM_LOG_LEVEL
           value: "7"
         - name: VSECM_SPIFFEID_PREFIX_WORKLOAD

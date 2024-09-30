@@ -23,6 +23,15 @@ to integrate **VMware Secrets Manager** SDK. In such cases, you can use
 and injects secrets into a shared in-memory volume. Your application can then
 read the secrets from that volume.
 
+## Screencast
+
+Here is a screencast that demonstrates this use case:
+
+<script 
+  src="https://asciinema.org/a/676196.js" 
+  id="asciicast-676196" 
+  async="true"></script>
+
 ## Strategy
 
 Use **VSecM Sidecar** to inject secrets into your application container.
@@ -109,6 +118,7 @@ kind: ClusterSPIFFEID
 metadata:
   name: example
 spec:
+  className: vsecm
   # SPIFFE ID `MUST` start with 
   # "spiffe://vsecm.com/workload/$workloadName/ns/"
   # for `safe` to recognize the workload and 

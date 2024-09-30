@@ -11,7 +11,7 @@ metadata:
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: spire-server-cluster-role
+  name: spire-server-spire-server
 rules:
   - apiGroups: [""]
     resources: ["nodes"]
@@ -28,15 +28,14 @@ rules:
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: spire-server-cluster-role-binding
-  namespace: spire-system
+  name: spire-server-spire-server
 subjects:
   - kind: ServiceAccount
     name: spire-server
-    namespace: spire-system
+    namespace: spire-server
 roleRef:
   kind: ClusterRole
-  name: spire-server-cluster-role
+  name: spire-server-spire-server
   apiGroup: rbac.authorization.k8s.io
 
 ---
@@ -46,7 +45,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   namespace: spire-system
-  name: spire-server-role
+  name: spire-bundle
 rules:
   # allow "get" access to pods (to resolve selectors for PSAT attestation)
   - apiGroups: [""]
@@ -61,12 +60,12 @@ rules:
 
 ---
 
-# RoleBinding granting the spire-server-role to the SPIRE server
+# RoleBinding granting the spire-bundle role to the SPIRE server
 # service account.
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: spire-server-role-binding
+  name: spire-bundle
   namespace: spire-system
 subjects:
   - kind: ServiceAccount
@@ -74,7 +73,7 @@ subjects:
     namespace: spire-system
 roleRef:
   kind: Role
-  name: spire-server-role
+  name: spire-bundle
   apiGroup: rbac.authorization.k8s.io
 
 ---
@@ -103,7 +102,7 @@ data:
       bind_address = "0.0.0.0"
       bind_port = "8081"
       trust_domain = "cluster1.demo"
-      data_dir = "/run/spire/server/data"
+      data_dir = "/run/spire/data"
       log_level = "DEBUG"
       federation {
         bundle_endpoint {
@@ -124,7 +123,7 @@ data:
       DataStore "sql" {
         plugin_data {
           database_type = "sqlite3"
-          connection_string = "/run/spire/server/data/datastore.sqlite3"
+          connection_string = "/run/spire/data/datastore.sqlite3"
         }
       }
 
@@ -140,7 +139,7 @@ data:
 
       KeyManager "disk" {
         plugin_data {
-          keys_path = "/run/spire/server/data/keys.json"
+          keys_path = "/run/spire/data/keys.json"
         }
       }
 
@@ -265,7 +264,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: spire-controller-manager-webhook-service
+  name: spire-controller-manager-webhook
   namespace: spire-system
 spec:
   ports:

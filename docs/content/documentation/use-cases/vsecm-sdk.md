@@ -26,6 +26,14 @@ Fetching secrets using VSecM SDK will also enable you to…
 * Rotate the app's secrets without needing to restart or evict the app.
 * Get meta-information about the secrets that are otherwise inaccessible.
 
+## Screencast
+
+Here is a screencast that demonstrates this use case:
+
+```txt
+WORK IN PROGRESS
+```
+
 ## High-Level Diagram
 
 Open the images in a new tab to see the full-size versions:
@@ -51,6 +59,7 @@ kind: ClusterSPIFFEID
 metadata:
   name: example
 spec:
+  className: vsecm
   spiffeIDTemplate: "spiffe://vsecm.com\
     /workload/example\
     /ns/{{ .PodMeta.Namespace }}\
@@ -96,7 +105,7 @@ spec:
         - name: VSECM_SIDECAR_SECRET_PATH
           value: "/opt/app/credentials/secrets.json"
         - name: SPIFFE_ENDPOINT_SOCKET
-          value: "unix:///spire-agent-socket/agent.sock"
+          value: "unix:///spire-agent-socket/spire-agent.sock"
       volumes:
       - name: spire-agent-socket
         csi:

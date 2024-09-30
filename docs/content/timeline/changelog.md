@@ -13,7 +13,120 @@ title = "VSecM Changelog"
 weight = 11
 +++
 
-## Recent Updates
+## Recent Changes
+
+* Documented all undocumented public methods in the source code.
+* Updated some of the Asciinema screen recordings of the use cases.
+* Other documentation updates.
+* Minor code fixes and enhancements.
+
+## [0.27.1] - 2024-09-13
+
+This is a security and stability release. We have fixed several vulnerabilities
+and made the components more robust.
+
+### Added
+
+* Increased test coverage.
+* Minor bug fixes and performance improvements.
+* Documentation updates.
+
+### Changed
+
+* Updated Go to version 1.23.1 on major components. vSecM SDK remains at Go 
+  version 1.21.0 to offer compatibility with older systems. This is the smallest
+  version that we can support with the SDK without exposing vulnerabilities.
+
+### Fixed
+
+* Fixed a bug where SPIRE Server was crashing when using Helm charts and not
+  enabling persistent volumes.
+
+### Security 
+
+* Fixed GHSA-xr7q-jx4m-x55m [Private tokens could appear in logs if context containing gRPC metadata is logged in ](https://github.com/vmware-tanzu/secrets-manager/security/dependabot/21)
+
+## [0.27.0] - 2024-07-28
+
+### Changed
+
+* Removed `useClusterSpiffeIds` and `useSpireControllerManager` from helm charts
+  options. SPIRE helm charts use SPIRE Controller Manager, and disabling it
+  is nontrivial. Also, ClusterSPIFFEIDs are the best way to manage SPIFFEIDs
+  in a Kubernetes cluster. — If we find a use case where these options are
+  necessary, or if there is a need from the community, we can modify the
+  code to let SPIRE install without SPIRE Controller Manager and bring those
+  flags back.
+* Optimized the build pipeline, reducing the build time by 60%.
+* Removed bundle endpoints from SPIRE manifests. We don't use them anywhere.
+  If there is a need, we can bring them back. Note that this also impacts
+  the experimental "federation" feature. Federation can still be enabled
+  by manually editing the SPIRE Server and SPIRE Agent configmaps. Later, we'll
+  have a cross-cluster replication feature where we will introduce these
+  bundle endpoints using a hub-spoke topology in a more controlled manner.
+
+### Added
+
+* Introduced new Architecture Decision Records (ADRs) as drafts. These ADRs
+  will be reviewed and finalized in the upcoming releases. 
+* Namespaces of `vsecm-system`, `spire-server`, and `spire-system` can now
+  be dynamically configurable via Helm charts.
+* Various documentation and README updates.
+
+## [0.26.1] - 2024-07-07
+
+### Added
+
+* VMware Secrets Manager Helm charts now have the ability to generate 
+  RedHat OpenShift compatible manifests. You’ll need to set `global.enableOpenShift`
+  to `true` to use this feature. It is `false` by default because it introduced
+  OpenShift-specific security rules that other clusters will not interpret
+  properly.
+* Introduced new images `spireHelperBash`, `spireHelperKubectl`, 
+  `openShiftHelperUbi9` to help and streamline SPIRE deployment and harden
+  its security by mutating webhook configurations and other security attributes
+  post-install. 
+* Increased unit tests coverage. Our first target is 50%, and we are aiming to
+  reach there one unit test at a time.
+* Documentation updates.
+
+### Changed
+
+* **BREAKING**: We have made significant updates in the VSecM SPIRE helm charts
+  to align them with the official upstream SPIFFE `helm-charts-hardened`
+  project. This means, VSecM users will need to add `className: "vsecm"` to
+  their workload SPIFFEID for the workloads to get their SVIDs.
+* **BREAKING**: The default SPIRE Agent socket is renamed to `spire-agent.sock`
+  instead of `agent.sock`. If you are using **VSecM SDK** or **VSecM Sidecar**
+  this change is transparent; however if you are manually consuming the SPIRE
+  Agent socket, you’d need to change your code to listen to the new socket.
+* SPIRE Server and SPIRE Agent configuration values in the ConfigMaps are now
+  in JSON form to align with `helm-charts-hardened`.
+* SPIRE Server Service is now serving from the standard TLS port 443.
+* Updated SPIRE-related dependencies to their recent stable versions.
+* Updates in the exponential backoff algorithm to make it more robust.
+* Certain environment variables changed, the changes have not reflected to the
+  documentation by the time of this release note. We will update the documentation
+  shortly. In the meantime, when in doubt, take source code as the authoritative
+  reference for variable naming. Helm charts will also contain the correct
+  environment variable names and default values.
+* Other refactorings in the codebase to improve performance. The changes do
+  not change the behavior or introduce any new behavior.
+
+### Security
+
+* SPIRE Server is now in its own namespace (*to benefit from the security of
+  namespace isolation*) and also has a `restricted` pod security audit with
+  a read-only file system and an unprivileged non-root account.
+* Other security enhancements especially focused around SPIRE.
+
+### Fixed
+
+* Several minor bugfixes and regressions.
+
+## [0.26.0] - 2024-06-28
+
+### Added
 
 * Added the ability to have regex-based SPIFFE ID matchers.
 * Enabled stricter validation on SPIFFE IDs to reduce configuration errors.
@@ -27,18 +140,43 @@ weight = 11
 * Added the ability to not create `ClusterSPIFFEID`s for the VSecM components
   automatically. In this mode, the operator will need to manually create those
   required `ClusterSPIFFEID`s.
-* Documentation updates.
-* Introduced `helm-docs` for helm chart documentation.
-* Replaced `github.com/pkg/errors` with the native `errors` package 
+* Ability to use regexes for SPIFFEID prefix matching.
+* Ability to use a custom trust domain.
+* Ability to Use Regex-Based Validation for Sentinel, Safe, and Workload 
+  SPIFFE IDs.
+* Code cleanup and refactoring.
+* Random secret generator can now generate symbols too, along with numbers and
+  letters.
+* Created a `./lib` folder to hold common code that can be shared across
+  different components, or even be imported by external applications.
+* Stability: Enhancements in liveness and readiness probes for VSecM components.
+  This change ensures that the components are more resilient and reliable.
+* Enable Istio-style SPIFFE IDs; custom namespaces, and custom trust domains.
+
+### Changed
+
+* Lots of documentation updates to reflect the recent changes in the project.
+* Replaced `github.com/pkg/errors` with the native `errors` package
   to reduce the number of dependencies and the codebase more
   secure and maintainable.
-* Lots of documentation updates to reflect the recent changes in the project.
-* Ability to match workload names from their SPIFFEIDs using regex.
-* Ability to use regexes for SPIFFEID prefix matching.
-* Workload validation now panics if the SPIFFEID does not have the proper
-  trust domain or is badly formatted.
+* Updates to the exponential backoff algorithm.
+* Enhancements to speed up build time.
+* Rephrased the "Problem reading secret" error message to be more informative.
+  The message ought to have been a notification, not an error because it
+  regularly happens during cache misses. Fixed the wording to indicate
+  there is no need to panic.
+* We started using [zola](https://www.getzola.org/) for the documentation
+  website. This change makes the documentation website faster, more accessible,
+  and easier to navigate and follow.
+
+### Security
+
+* Stricter workload validation: Workload validation now panics if the SPIFFE ID 
+  does not have the proper trust domain or is badly formatted.
 
 ## [0.25.3] - 2024-05-17
+
+### Changed
 
 * Removed some configuration options including
   `VSECM_MANUAL_ROOT_KEY_UPDATES_K8S_SECRET` because how the root key will
@@ -60,12 +198,17 @@ weight = 11
   even after a fair amount exponentially-backed-off of retries (*10 by default*).
 * An entire overhaul of the documentation website: It is now faster, more 
   accessible, more usable, easier to navigate and follow.
+* Refactorings and improvements across the entire codebase.
+
+### Added
+
 * Added an experimental Java SDK. The keyword here is: **experimental**; we
   do know that it does not work out-of-the box, so we are not providing any
   documentation yet: Feel free to join our Slack channel to learn more about
   how best you can use it.
-* Refactorings and improvements across the entire codebase.
 * Introduced [Architectural Decision Records](https://vsecm.com/documentation/architecture/adr-intro/)
+* Added `app.kubernetes.io/operated-by` labels to the VSecM-managed Kubernetes
+  Secrets to make it easier to identify the components that are managed by VSecM.
 
 ## [0.25.2] - 2024-05-06
 

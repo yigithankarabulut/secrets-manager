@@ -9,7 +9,7 @@
 # */
 
 # builder image
-FROM golang:1.22.3-alpine3.19 as builder
+FROM golang:1.23.1-alpine3.20 AS builder
 RUN mkdir /build
 COPY app /build/app
 COPY core /build/core
@@ -26,7 +26,7 @@ RUN CGO_ENABLED=0 GOEXPERIMENT=boringcrypto GOOS=linux go build -mod vendor -a -
 # generate clean, final image for end users
 FROM gcr.io/distroless/static-debian11
 
-ENV APP_VERSION="0.25.4"
+ENV APP_VERSION="0.27.2"
 
 LABEL "maintainers"="VSecM Maintainers <maintainers@vsecm.com>"
 LABEL "version"=$APP_VERSION
@@ -41,10 +41,10 @@ LABEL "changelog"="https://vsecm.com/docs/changelog"
 COPY --from=builder /build/safe /bin/safe
 COPY --from=builder /build/sloth /bin/sloth
 
-ENV HOSTNAME sentinel
+ENV HOSTNAME="sentinel"
 
 # Prevent root access.
-ENV USER nobody
+ENV USER="nobody"
 USER nobody
 
 # Keep the container alive.

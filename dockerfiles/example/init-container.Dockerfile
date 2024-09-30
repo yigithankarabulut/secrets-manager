@@ -9,7 +9,7 @@
 # */
 
 # builder image
-FROM golang:1.22.3-alpine3.19 as builder
+FROM golang:1.23.1-alpine3.20 AS builder
 COPY app /build/app
 COPY core /build/core
 COPY lib /build/lib
@@ -23,7 +23,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -mod vendor -a -o example \
 # generate clean, final image for end users
 FROM gcr.io/distroless/static-debian11
 
-ENV APP_VERSION="0.25.4"
+ENV APP_VERSION="0.27.2"
 
 LABEL "maintainers"="VSecM Maintainers <maintainers@vsecm.com>"
 LABEL "version"=$APP_VERSION

@@ -23,6 +23,14 @@ When this is the only way to configure the app, especially when we don't have
 access to the application's configuration and source code, there won't be any 
 other feasible way to pass secrets to the app.
 
+## Screencast
+
+Here is a screencast that demonstrates this use case:
+
+```txt
+WORK IN PROGRESS
+```
+
 ## Strategy
 
 Use **VSecM Sidecar** and **VSecM Init Container** to provide the secrets the 
@@ -80,6 +88,7 @@ kind: ClusterSPIFFEID
 metadata:
   name: example
 spec:
+  className: vsecm
   spiffeIDTemplate: "spiffe://vsecm.com\
     /workload/example\
     /ns/{{ .PodMeta.Namespace }}\
@@ -310,7 +319,7 @@ spec:
         - name: VSECM_SIDECAR_SECRET_PATH
           value: "/opt/app/credentials/secrets.json"  
         - name: SPIFFE_ENDPOINT_SOCKET
-          value: "unix:///spire-agent-socket/agent.sock"
+          value: "unix:///spire-agent-socket/spire-agent.sock"
 ## <--- END CHANGE
 
       volumes:
@@ -386,7 +395,7 @@ spec:
         - name: VSECM_SIDECAR_SECRET_PATH
           value: "/opt/app/credentials/secrets.json"  
         - name: SPIFFE_ENDPOINT_SOCKET
-          value: "unix:///spire-agent-socket/agent.sock"
+          value: "unix:///spire-agent-socket/spire-agent.sock"
       volumes:
       - name: spire-agent-socket
         csi:
@@ -458,7 +467,7 @@ spec:
         - name: VSECM_SIDECAR_SECRET_PATH
           value: "/opt/app/credentials/secrets.json"  
         - name: SPIFFE_ENDPOINT_SOCKET
-          value: "unix:///spire-agent-socket/agent.sock"
+          value: "unix:///spire-agent-socket/spire-agent.sock"
       volumes:
       - name: spire-agent-socket
         csi:

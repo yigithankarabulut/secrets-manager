@@ -28,14 +28,14 @@ spec:
       serviceAccountName: vsecm-inspector
       containers:
         - name: main
-          image: localhost:32000/example-multiple-secrets:0.25.4
+          image: localhost:32000/example-multiple-secrets:0.27.2
           volumeMounts:
             - name: spire-agent-socket
               mountPath: /spire-agent-socket
               readOnly: true
           env:
             - name: SPIFFE_ENDPOINT_SOCKET
-              value: "unix:///spire-agent-socket/agent.sock"
+              value: "unix:///spire-agent-socket/spire-agent.sock"
             - name: VSECM_LOG_LEVEL
               value: "7"
             - name: VSECM_SPIFFEID_PREFIX_WORKLOAD

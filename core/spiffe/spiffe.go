@@ -13,9 +13,10 @@ package spiffe
 import (
 	"context"
 	"errors"
-	"github.com/spiffe/go-spiffe/v2/workloadapi"
-	"github.com/vmware-tanzu/secrets-manager/core/constants/key"
 
+	"github.com/spiffe/go-spiffe/v2/workloadapi"
+
+	"github.com/vmware-tanzu/secrets-manager/core/constants/key"
 	"github.com/vmware-tanzu/secrets-manager/core/env"
 	log "github.com/vmware-tanzu/secrets-manager/core/log/std"
 	"github.com/vmware-tanzu/secrets-manager/core/validation"
@@ -63,22 +64,12 @@ func AcquireSourceForSentinel(
 
 		svid, err := source.GetX509SVID()
 		if err != nil {
-			log.ErrorLn(cid,
-				"acquireSource: trouble fetching my identity from SPIRE.")
-			log.ErrorLn(cid,
-				"acquireSource: not in a secured container.")
 			errorChan <- err
 			return
 		}
 
 		// Make sure that the binary is enclosed in a Pod that we trust.
 		if !validation.IsSentinel(svid.ID.String()) {
-			log.ErrorLn(cid,
-				"acquireSource: I don't know you, and it's crazy: '"+
-					svid.ID.String()+"'")
-			log.ErrorLn(cid,
-				"acquireSource: "+
-					"`safe` can only run from within the Sentinel container.")
 			errorChan <- errors.New(
 				"acquireSource: I don't know you, and it's crazy: '" +
 					svid.ID.String() + "'")

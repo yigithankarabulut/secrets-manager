@@ -100,6 +100,7 @@ kind: ClusterSPIFFEID
 metadata:
   name: example
 spec:
+  className: vsecm
   spiffeIDTemplate: "spiffe://vsecm.com/workload/example"
   podSelector:
     matchLabels:
@@ -132,7 +133,7 @@ spec:
             readOnly: true
           env:
           - name: SPIFFE_ENDPOINT_SOCKET
-            value: unix:///spire-agent-socket/agent.sock
+            value: unix:///spire-agent-socket/spire-agent.sock
       volumes:
       - name: spire-agent-socket
         hostPath:

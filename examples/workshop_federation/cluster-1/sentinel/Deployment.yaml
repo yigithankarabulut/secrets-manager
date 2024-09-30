@@ -31,7 +31,7 @@ spec:
       serviceAccountName: vsecm-sentinel
       containers:
         - name: main
-          image: localhost:32000/vsecm-ist-sentinel:0.25.4
+          image: localhost:32000/vsecm-ist-sentinel:0.27.2
           volumeMounts:
             - name: spire-agent-socket
               mountPath: /spire-agent-socket
@@ -47,7 +47,7 @@ spec:
           #
           env:
             - name: SPIFFE_ENDPOINT_SOCKET
-              value: "unix:///spire-agent-socket/agent.sock"
+              value: "unix:///spire-agent-socket/spire-agent.sock"
             - name: VSECM_SPIFFEID_PREFIX_WORKLOAD
               value: "spiffe://cluster1.demo/workload/"
             - name: VSECM_SPIFFEID_PREFIX_SENTINEL

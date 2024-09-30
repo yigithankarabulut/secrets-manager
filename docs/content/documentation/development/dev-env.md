@@ -18,6 +18,16 @@ weight = 12
 This section contains instructions to set up your development environment
 to actively contribute the **VMware Secrets Manager** project.
 
+## Overview
+
+Here is a brief recording of the steps that you need to take to build and test
+**VMware Secrets Manager** locally:
+
+<script 
+  src="https://asciinema.org/a/676190.js"
+  id="asciicast-676190" 
+  async="true"></script>
+
 ## Prerequisites
 
 Other than the source code, you need the following set up for your development

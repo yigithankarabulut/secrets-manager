@@ -1,6 +1,6 @@
 # base_url = "https://vsecm.com/v0.25.3/"
 base_url = "https://vsecm.com/"
-title = "VMWare Secrets Manager"
+title = "VMware Secrets Manager"
 description = "keep your secrets... secret"
 
 compile_sass = true
@@ -22,4 +22,4 @@ smart_punctuation = true
 
 [extra]
 author = "VMware Secrets Manager Contributors"
-version = "0.25.4"
+version = "0.27.2"

@@ -98,7 +98,7 @@ func Post(
 			log.Println(cid,
 				"Post: I cannot execute command because I cannot talk to SPIRE.")
 			return "",
-				fmt.Errorf(
+				errors.New(
 					"post: I cannot execute command because I cannot talk to SPIRE")
 		}
 
@@ -117,7 +117,8 @@ func Post(
 		proceed := <-proceedChan
 
 		if !proceed {
-			return "", printPayloadError(cid, errors.New("post: Could not proceed"))
+			return "", printPayloadError(cid,
+				errors.New("post: Could not proceed"))
 		}
 
 		authorizer := createAuthorizer()
@@ -135,7 +136,8 @@ func Post(
 				},
 			}
 
-			parts := strings.Split(sc.SerializedRootKeys, "\n")
+			parts := sc.SplitRootKeys()
+
 			if len(parts) != 3 {
 				return "", printPayloadError(
 					cid, errors.New("post: Bad data! Very bad data"))

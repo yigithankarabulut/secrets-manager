@@ -14,11 +14,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/vmware-tanzu/secrets-manager/core/constants/key"
-	"github.com/vmware-tanzu/secrets-manager/core/constants/symbol"
 	"strings"
 	"text/template"
 
+	"github.com/vmware-tanzu/secrets-manager/core/constants/key"
+	"github.com/vmware-tanzu/secrets-manager/core/constants/symbol"
 	tpl "github.com/vmware-tanzu/secrets-manager/core/template"
 )
 
@@ -62,7 +62,7 @@ func convertValueToMap(values []string) map[string][]byte {
 // otherwise, it returns a map with a single entry, "VALUE", containing the
 // original 'value' as []byte.
 func convertValueNoTemplate(values []string) map[string][]byte {
-	var data map[string][]byte
+	var data = make(map[string][]byte)
 	var jsonData map[string]string
 
 	val := ""
